@@ -1,6 +1,6 @@
 {
   "name": "@qarmiqai/ci",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Ask Qarmiq to test from any CI: start a trigger's run, wait for its verdict, and exit by go, stop or review.",
   "license": "MIT",
   "repository": {
@@ -29,7 +29,7 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "build:action": "esbuild github-action/src/index.ts --bundle --platform=node --target=node20 --format=esm --outfile=github-action/dist/index.js --legal-comments=none",
+    "build:action": "esbuild github-action/src/index.ts --bundle --platform=node --target=node22 --format=esm --outfile=github-action/dist/index.js --legal-comments=none",
     "typecheck": "tsc -p tsconfig.action.json",
     "test": "vitest run",
     "prepack": "npm run build"

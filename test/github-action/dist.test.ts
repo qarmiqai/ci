@@ -12,7 +12,7 @@ describe("github-action/dist", () => {
       entryPoints: [join(root, "github-action/src/index.ts")],
       bundle: true,
       platform: "node",
-      target: "node20",
+      target: "node22",
       format: "esm",
       legalComments: "none",
       write: false,

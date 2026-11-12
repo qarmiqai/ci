@@ -205,7 +205,7 @@ function output(title2, summary) {
 
 // github-action/src/report.ts
 var VERDICT_TITLE = { go: "Go: every scenario passed", stop: "Stop: a scenario failed", review: "Review: a person should look" };
-var SCENARIO_MARK = { passed: "\u2705 passed", failed: "\u274C failed", inconclusive: "\u26A0\uFE0F undecided", pending: "\u23F3 pending" };
+var SCENARIO_MARK = { passed: "\u2705 passed", failed: "\u274C failed", inconclusive: "\u26A0\uFE0F undecided", pending: "\u23F3 pending", none: "\u2796 no result" };
 var commentMarker = (triggerId) => `<!-- qarmiq-ci trigger:${triggerId} -->`;
 function cell(text) {
   return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\|/g, "\\|").replace(/\r?\n/g, " ");
@@ -219,11 +219,12 @@ function title(status) {
 }
 function renderReport(status, options = {}) {
   const { summary } = status;
+  const running = ACTIVE_STATES.has(status.state);
   const counts = [
     summary.passed ? `${summary.passed} passed` : null,
     summary.failed ? `${summary.failed} failed` : null,
     summary.inconclusive ? `${summary.inconclusive} undecided` : null,
-    summary.pending ? `${summary.pending} pending` : null
+    summary.pending ? `${summary.pending} ${running ? "pending" : "with no result"}` : null
   ].filter(Boolean);
   const lines = [
     `### Qarmiq: ${title(status)}`,
@@ -232,7 +233,7 @@ function renderReport(status, options = {}) {
     "",
     "| Result | Scenario | Promise |",
     "|---|---|---|",
-    ...status.scenarios.map((s) => `| ${SCENARIO_MARK[s.verdict ?? "pending"]} | \`${cell(s.ref)}\` | ${cell(s.statement)} |`),
+    ...status.scenarios.map((s) => `| ${SCENARIO_MARK[s.verdict ?? (running ? "pending" : "none")]} | \`${cell(s.ref)}\` | ${cell(s.statement)} |`),
     "",
     `[Open ${cell(status.run.key)} in Qarmiq](${status.run.url})${options.triggerName ? ` \xB7 trigger ${cell(options.triggerName)}` : ""}`
   ];

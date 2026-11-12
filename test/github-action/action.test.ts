@@ -121,3 +121,15 @@ describe("the report", () => {
     expect(conclusionFor(status({ state: "superseded", verdict: null }), "neutral")).toBe("cancelled");
   });
 });
+
+describe("a scenario with no verdict", () => {
+  it("is pending while the run goes on, and has no result once it is over", () => {
+    const scenarios = [{ id: "s", ref: "TI-S7", statement: "Search finds it", verdict: null }];
+    const summary = { scenarios: 1, passed: 0, failed: 0, inconclusive: 0, pending: 1 };
+    expect(renderReport(status({ state: "running", scenarios, summary }))).toContain("| ⏳ pending | `TI-S7`");
+    const over = renderReport(status({ state: "finished", verdict: "review", reason: "1 of 1 scenario could not be decided", scenarios, summary }));
+    expect(over).toContain("| ➖ no result | `TI-S7`");
+    expect(over).toContain("1 with no result of 1");
+    expect(over).not.toContain("pending");
+  });
+});

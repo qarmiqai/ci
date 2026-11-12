@@ -70,6 +70,8 @@ export function exitCodeFor(status: RunStatus, onReview: "allow" | "fail" = "all
 // The verdict and its scenarios in a few plain lines, for a pipeline's log.
 export function describeStatus(status: RunStatus): string {
   const head = status.verdict ? `${status.verdict}: ${status.reason ?? ""}`.trim() : `${status.state}${status.reason ? `: ${status.reason}` : ""}`;
-  const lines = status.scenarios.map((s) => `  ${(s.verdict ?? "pending").padEnd(12)} ${s.ref}  ${s.statement}`);
+  // A scenario with no verdict is still pending while the run goes on; once the run is over, it ended without a result.
+  const none = ACTIVE_STATES.has(status.state) ? "pending" : "no result";
+  const lines = status.scenarios.map((s) => `  ${(s.verdict ?? none).padEnd(12)} ${s.ref}  ${s.statement}`);
   return [head, ...lines, `Run: ${status.run.url}`].join("\n");
 }

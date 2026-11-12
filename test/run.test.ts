@@ -118,3 +118,11 @@ describe("describeStatus", () => {
     ]);
   });
 });
+
+describe("describeStatus for a scenario with no verdict", () => {
+  it("says pending while running and no result once over", () => {
+    const scenarios = [{ id: "s", ref: "TI-S7", statement: "Search finds it", verdict: null }];
+    expect(describeStatus(status({ state: "running", scenarios }))).toContain("pending      TI-S7");
+    expect(describeStatus(status({ state: "finished", verdict: "review", scenarios }))).toContain("no result    TI-S7");
+  });
+});

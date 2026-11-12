@@ -49,5 +49,5 @@ outputs:
     description: The run's reference, e.g. SHOP-R12.
 
 runs:
-  using: node20
+  using: node24
   main: dist/index.js
