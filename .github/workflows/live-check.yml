@@ -1,0 +1,38 @@
+# A live check of the published action against a real Qarmiq trigger, run by hand only. It uses the action as a customer's workflow
+# does (qarmiqai/ci/github-action@v1), so it tests what is released, not the working tree. Manual dispatch only: nothing from a pull
+# request or a fork can reach the token.
+name: Live check
+
+on:
+  workflow_dispatch:
+    inputs:
+      trigger:
+        description: The trigger's id
+        required: true
+      qarmiq-url:
+        description: The Qarmiq origin
+        required: true
+        default: https://app.qarmiq.ai
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  qarmiq:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - id: qarmiq
+        uses: qarmiqai/ci/github-action@v1
+        with:
+          token: ${{ secrets.QARMIQ_CI_TOKEN }}
+          trigger: ${{ inputs.trigger }}
+          qarmiq-url: ${{ inputs.qarmiq-url }}
+      - name: What the step handed on
+        if: always()
+        env:
+          VERDICT: ${{ steps.qarmiq.outputs.verdict }}
+          RUN_KEY: ${{ steps.qarmiq.outputs.run-key }}
+          RUN_URL: ${{ steps.qarmiq.outputs.run-url }}
+        run: echo "verdict=$VERDICT run-key=$RUN_KEY run-url=$RUN_URL"
