@@ -49,7 +49,7 @@ describe("runTrigger", () => {
       start: { status: 201, body: started() },
       statuses: [{ status: 200, body: status() }, { status: 200, body: status({ state: "finished", verdict: "go", reason: "all 2 scenarios passed" }) }],
     });
-    const { status: final } = await runTrigger(client(q.fetch), { triggerId: "t", sleep: noSleep, onStatus: (s) => seen.push(s.state) });
+    const { status: final } = await runTrigger(client(q.fetch), { triggerId: "t", sleep: noSleep, onStatus: (s) => { seen.push(s.state); } });
     expect(final.verdict).toBe("go");
     expect(seen).toEqual(["running", "finished"]);
     expect(q.requests.map((r) => r.method)).toEqual(["POST", "GET", "GET"]);
@@ -80,7 +80,7 @@ describe("runTrigger", () => {
       statuses: [{ status: 200, body: status() }],
       cancel: { status: 200, body: status({ state: "cancelled", reason: "Cancelled by the CI pipeline." }) },
     });
-    const outcome = await runTrigger(client(q.fetch), { triggerId: "t", sleep: noSleep, onStatus: (s) => s.state === "running" && controller.abort(), signal: controller.signal });
+    const outcome = await runTrigger(client(q.fetch), { triggerId: "t", sleep: noSleep, onStatus: (s) => { if (s.state === "running") controller.abort(); }, signal: controller.signal });
     expect(outcome.status.state).toBe("cancelled");
     expect(q.requests.at(-1)!.method).toBe("DELETE");
   });

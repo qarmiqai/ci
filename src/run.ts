@@ -6,9 +6,10 @@ export interface RunOptions {
   request?: StartRequest;
   // How long each status read is held open on the server. Qarmiq caps it; 25 is safe.
   waitSeconds?: number;
-  // Called after the start and after every status read, for a pipeline's log or a check's summary.
-  onStart?: (started: StartResponse) => void;
-  onStatus?: (status: RunStatus) => void;
+  // Called after the start and after every status read, for a pipeline's log or a check's summary. Awaited, so a caller that reports
+  // somewhere (a check run) finishes one report before the next read.
+  onStart?: (started: StartResponse) => void | Promise<void>;
+  onStatus?: (status: RunStatus) => void | Promise<void>;
   // Aborted when the pipeline stops waiting (its job was cancelled): the run is then cancelled on the server too.
   signal?: AbortSignal;
   // For tests: how to wait between reads.
@@ -28,13 +29,13 @@ const MAX_READ_FAILURES = 5;
 export async function runTrigger(client: QarmiqCiClient, options: RunOptions): Promise<RunOutcome> {
   const sleep = options.sleep ?? ((ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms)));
   const started = await client.start(options.triggerId, options.request ?? {});
-  options.onStart?.(started);
+  await options.onStart?.(started);
   const waitSeconds = options.waitSeconds ?? 25;
   let failures = 0;
   for (;;) {
     if (options.signal?.aborted) {
       const status = await client.cancel(started.run.id);
-      options.onStatus?.(status);
+      await options.onStatus?.(status);
       return { started, status };
     }
     let status: RunStatus;
@@ -50,7 +51,7 @@ export async function runTrigger(client: QarmiqCiClient, options: RunOptions): P
       await sleep(Math.max(retryAfter, Math.min(30_000, 2_000 * 2 ** (failures - 1))));
       continue;
     }
-    options.onStatus?.(status);
+    await options.onStatus?.(status);
     if (!ACTIVE_STATES.has(status.state)) return { started, status };
     // The server held the read open already; with no wait asked for, a short pause keeps this from becoming a tight loop.
     if (waitSeconds <= 0) await sleep(2_000);

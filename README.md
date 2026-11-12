@@ -28,12 +28,38 @@ On **GitHub Actions**, **GitLab CI** and **Bitbucket Pipelines** the commit, bra
 
 ### GitHub Actions
 
+Use the action. It does what the CLI does, and also reports a **check** on the commit (neutral, not red, for `review`), keeps **one comment** on the pull request up to date, writes the job summary, and sets the outputs `verdict`, `run-url` and `run-key`.
+
 ```yaml
-- name: Test with Qarmiq
-  run: npx @qarmiqai/ci run --trigger <trigger id>
-  env:
-    QARMIQ_CI_TOKEN: ${{ secrets.QARMIQ_CI_TOKEN }}
+jobs:
+  qarmiq:
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    permissions:
+      contents: read
+      checks: write          # the check on the commit
+      pull-requests: write   # the comment on the pull request
+    steps:
+      - uses: qarmiqai/ci/github-action@v1
+        with:
+          token: ${{ secrets.QARMIQ_CI_TOKEN }}
+          trigger: <trigger id>
 ```
+
+| Input | Default | |
+|---|---|---|
+| `token` | | The trigger's token, from a secret. Required. |
+| `trigger` | | The trigger's id. Required. |
+| `qarmiq-url` | `https://app.qarmiq.ai` | The Qarmiq origin. |
+| `environment` | the trigger's | Another of the project's saved environments. |
+| `rerun` | `false` | A fresh run even if this commit was already started. |
+| `on-review` | `neutral` | `fail` to fail the job on `review`. |
+| `comment` | `true` | `false` for no pull request comment. |
+| `check-name` | `Qarmiq` | The check's name, e.g. for a required status check. |
+
+On a pull request, the commit tested and reported on is the one the author pushed, not the merge commit GitHub makes. Without `checks: write` or `pull-requests: write` the action says so in a warning and carries on; the verdict still decides the step. To gate a merge on it, mark the check as required in branch protection.
+
+The action is a thin layer over this package, bundled in `github-action/dist`, so there is nothing to install.
 
 ### GitLab CI
 

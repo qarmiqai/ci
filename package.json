@@ -29,12 +29,14 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "build:action": "esbuild github-action/src/index.ts --bundle --platform=node --target=node20 --format=esm --outfile=github-action/dist/index.js --legal-comments=none",
+    "typecheck": "tsc -p tsconfig.action.json",
     "test": "vitest run",
     "prepack": "npm run build"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
+    "esbuild": "^0.25.12",
     "typescript": "^5.7.0",
     "vitest": "^4.1.11"
   }

@@ -1,0 +1,53 @@
+name: Test with Qarmiq
+description: Start a Qarmiq CI trigger's run, wait for its verdict, and report it as a check and a pull request comment.
+author: Qarmiq
+branding:
+  icon: check-circle
+  color: blue
+
+inputs:
+  token:
+    description: The trigger's token, from Qarmiq's Settings → CI. Pass it from a secret.
+    required: true
+  trigger:
+    description: The trigger's id, shown on Qarmiq's Settings → CI.
+    required: true
+  qarmiq-url:
+    description: The Qarmiq origin.
+    required: false
+    default: https://app.qarmiq.ai
+  environment:
+    description: Test another of the project's saved environments than the trigger's own.
+    required: false
+  rerun:
+    description: Start a fresh run even if this commit was already started on this environment.
+    required: false
+    default: "false"
+  on-review:
+    description: What "review" (a scenario could not be decided) does. neutral reports it without failing the job; fail fails the job.
+    required: false
+    default: neutral
+  comment:
+    description: Post the verdict as one comment on the pull request, updated in place on each push. Needs pull-requests write.
+    required: false
+    default: "true"
+  check-name:
+    description: The name of the check run this step reports. Needs checks write.
+    required: false
+    default: Qarmiq
+  github-token:
+    description: The token used for the check run and the comment.
+    required: false
+    default: ${{ github.token }}
+
+outputs:
+  verdict:
+    description: go, stop or review; empty when the run ended with no verdict.
+  run-url:
+    description: The run's page in Qarmiq.
+  run-key:
+    description: The run's reference, e.g. SHOP-R12.
+
+runs:
+  using: node20
+  main: dist/index.js
